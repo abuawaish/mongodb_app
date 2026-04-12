@@ -1,11 +1,9 @@
 import streamlit as st
 import json
-import sys
 import io
 import contextlib
-from typing import Any, Dict, List, Optional
+from typing import Any
 from rich.console import Console
-from rich.table import Table
 from rich.json import JSON as RichJSON
 
 # Import the provided MongoDB operations and pipelines
