@@ -7,6 +7,8 @@ from pymongo.errors import ConnectionFailure, ConfigurationError, CollectionInva
 import logging
 import json
 from typing import Any, MutableMapping, Optional, Mapping
+import os
+from dotenv import load_dotenv
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,8 +20,9 @@ class MongoDbOperation:
     @classmethod
     def __connect(cls) -> Optional[MongoClient]:
         try:
-            username: str = "abuawaish7"
-            password: str = quote_plus("#!Aw@ish/connect_mongodb7")  # encode special chars
+            load_dotenv()
+            username: str = os.getenv("MONGO_USER", "your_username")
+            password: str = quote_plus(os.getenv("MONGO_PASS", "your_password"))
             uri: str = f"mongodb+srv://{username}:{password}@mycluster.ewovdrg.mongodb.net/?retryWrites=true&w=majority&appName=MyCluster"
             client: MongoClient[Mapping[str, Any]] = MongoClient(uri, serverSelectionTimeoutMS=5000)
             client.admin.command('ping')
