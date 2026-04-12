@@ -3,12 +3,12 @@ from urllib.parse import quote_plus
 from pymongo.results import DeleteResult, UpdateResult, InsertOneResult, InsertManyResult
 from pymongo.synchronous.command_cursor import CommandCursor
 from pymongo_pipelines import Pipelines
-from pymongo.errors import ConnectionFailure, ConfigurationError, CollectionInvalid, PyMongoError, WriteError, OperationFailure, DuplicateKeyError, BulkWriteError
+from pymongo.errors import ConfigurationError, CollectionInvalid, PyMongoError, WriteError, OperationFailure, DuplicateKeyError, BulkWriteError
 import logging
 import json
-from typing import Any, MutableMapping, Optional, Mapping
+from typing import Any, MutableMapping, Optional
 import os
-from dotenv import load_dotenv
+import streamlit as st
 
 logging.basicConfig(
     level=logging.INFO,
@@ -17,19 +17,41 @@ logging.basicConfig(
 )
 
 class MongoDbOperation:
+
     @classmethod
     def __connect(cls) -> Optional[MongoClient]:
         try:
-            load_dotenv()
-            username: str = os.getenv("MONGO_USER", "your_username")
-            password: str = quote_plus(os.getenv("MONGO_PASS", "your_password"))
-            uri: str = f"mongodb+srv://{username}:{password}@mycluster.ewovdrg.mongodb.net/?retryWrites=true&w=majority&appName=MyCluster"
-            client: MongoClient[Mapping[str, Any]] = MongoClient(uri, serverSelectionTimeoutMS=5000)
+            # --- Try to read from Streamlit secrets first ---
+            try:
+                username = st.secrets["mongo"]["username"]
+                password = st.secrets["mongo"]["password"]
+                cluster_url = st.secrets["mongo"]["cluster_url"]
+                app_name = st.secrets["mongo"].get("app_name", "MyCluster")
+            except (FileNotFoundError, KeyError, AttributeError):
+                # --- Fallback to environment variables (local .env) ---
+                username = os.getenv("MONGO_USERNAME")
+                password = os.getenv("MONGO_PASSWORD")
+                cluster_url = os.getenv("MONGO_CLUSTER_URL")
+                app_name = os.getenv("MONGO_APP_NAME", "MyCluster")
+
+            # Validate that all required pieces are present
+            if not all([username, password, cluster_url]):
+                raise ValueError("Missing MongoDB credentials. Set Streamlit secrets or environment variables.")
+
+            # URL-encode the password (handles special characters like #, !, @, /)
+            encoded_password = quote_plus(password)
+
+            # Build the full URI
+            uri = f"mongodb+srv://{username}:{encoded_password}@{cluster_url}/?retryWrites=true&w=majority&appName={app_name}"
+
+            # Connect and test
+            client = MongoClient(uri, serverSelectionTimeoutMS=5000)
             client.admin.command('ping')
             logging.info("Connected to MongoDB successfully!")
             return client
-        except ConnectionFailure as cf:
-            logging.error(f"Could not connect to MongoDB: {cf}")
+
+        except Exception as e:
+            logging.error(f"Could not connect to MongoDB: {e}")
             return None
 
     @staticmethod

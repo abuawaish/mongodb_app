@@ -7,6 +7,8 @@ from rich.console import Console
 from rich.json import JSON as RichJSON
 
 # Import the provided MongoDB operations and pipelines
+from dotenv import load_dotenv
+load_dotenv()
 from pymongo_config import MongoDbOperation
 from pymongo_pipelines import Pipelines
 
