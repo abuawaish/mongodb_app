@@ -655,3 +655,32 @@ class MongoDbOperation:
             client.close()
             logging.info('MongoDB connection closed.')
 
+    @staticmethod
+    def execute_custom_pipeline(database_name: str, collection_name: str, pipeline: list[dict[str, Any]]) -> None:
+        """Run a user‑provided aggregation pipeline on any collection."""
+        if not database_name:
+            raise ValueError("Database name must not be empty.")
+        if not collection_name:
+            raise ValueError("Collection name must not be empty.")
+        if not pipeline or not isinstance(pipeline, list):
+            raise ValueError("Pipeline must be a non‑empty list of dictionaries.")
+
+        client: Optional[MongoClient] = MongoDbOperation.__connect()
+        if client is None:
+            raise ConnectionError("MongoDB client is None. Could not establish connection.")
+
+        try:
+            db = client[database_name]
+            # If collection doesn't exist, aggregate will still return empty (no error)
+            collection = db[collection_name]
+            logging.info(f"Executing custom pipeline on {database_name}.{collection_name}...")
+            documents = list(collection.aggregate(pipeline))
+            print(json.dumps(documents, indent=4, default=json_util.default))
+            if not documents:
+                print("Pipeline returned no documents.")
+        except PyMongoError as ex:
+            logging.exception(f"Custom pipeline failed: {ex}")
+            print(f"Error: {ex}")
+        finally:
+            client.close()
+            logging.info("MongoDB connection closed.")

@@ -83,6 +83,7 @@ menu = st.sidebar.radio(
         "Schema Ops",
         "Aggregation Pipelines",
         "Seed Sample Data",
+        "Custom Pipeline",
     ],
 )
 
@@ -385,3 +386,54 @@ elif menu == "Seed Sample Data":
         "Note: If collections do not exist, they will be created automatically on first insert. "
         "The join pipeline expects both `users` and `orders` collections."
     )
+
+# ----------------------------------------------------------------------
+# 8. Custom Pipeline (user‑defined aggregation)
+# ----------------------------------------------------------------------
+elif menu == "Custom Pipeline":
+    st.header("⚙️ Execute Your Own Aggregation Pipeline")
+    st.markdown("Run any aggregation pipeline on **any database and collection**.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        custom_db = st.text_input("Database name", key="custom_db", value="Test")
+        custom_coll = st.text_input("Collection name", key="custom_coll", value="cars")
+    with col2:
+        st.markdown("**Pipeline (JSON array)**")
+        pipeline_json = st.text_area(
+            "Pipeline stages",
+            value='[\n  {"$match": {"maker": "Hyundai"}},\n  {"$limit": 3}\n]',
+            height=200,
+            help="Enter a valid JSON array of aggregation stages."
+        )
+
+    if st.button("Run Custom Pipeline"):
+        if not custom_db or not custom_coll:
+            st.warning("Database and collection names are required.")
+        elif not pipeline_json.strip():
+            st.warning("Pipeline cannot be empty.")
+        else:
+            pipeline = parse_json(pipeline_json)
+            if pipeline is not None:
+                # Call the new method
+                output = capture_output(
+                    MongoDbOperation.execute_custom_pipeline,
+                    custom_db,
+                    custom_coll,
+                    pipeline
+                )
+                st.subheader("Pipeline Result")
+                # Try to pretty-print JSON
+                try:
+                    # The output may contain JSON; attempt to parse the first valid JSON object
+                    # Since capture_output returns everything printed, we need to extract the JSON part.
+                    # A simple approach: show as code with Rich fallback.
+                    data = json.loads(output)  # if output is pure JSON
+                    rich_json = RichJSON(data)
+                    console = Console(file=io.StringIO(), force_terminal=False)
+                    console.print(rich_json)
+                    formatted = console.file.getvalue()
+                    st.code(formatted, language="json")
+                except:
+                    # If not pure JSON, show raw output (includes logging)
+                    st.code(output, language="text")
