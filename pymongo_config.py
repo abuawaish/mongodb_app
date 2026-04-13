@@ -2,13 +2,13 @@ from pymongo import MongoClient, ASCENDING
 from urllib.parse import quote_plus
 from pymongo.results import DeleteResult, UpdateResult, InsertOneResult, InsertManyResult
 from pymongo.synchronous.command_cursor import CommandCursor
-from pymongo_pipelines import Pipelines
-from pymongo.errors import ConfigurationError, CollectionInvalid, PyMongoError, WriteError, OperationFailure, DuplicateKeyError, BulkWriteError
+from pymongo.errors import CollectionInvalid, PyMongoError, WriteError, OperationFailure, DuplicateKeyError, BulkWriteError
 import logging
 import json
 from typing import Any, MutableMapping, Optional
 import os
 import streamlit as st
+from bson import json_util
 
 logging.basicConfig(
     level=logging.INFO,
@@ -72,7 +72,6 @@ class MongoDbOperation:
             logging.info("Executing aggregation pipeline...")
 
             documents = list(my_collection.aggregate(pipeline_))
-            from bson import json_util
             print(json.dumps(documents, indent=4, default=json_util.default))
 
         except PyMongoError as ex:
@@ -99,7 +98,6 @@ class MongoDbOperation:
 
             logging.info("Executing aggregation join pipeline...")
             documents = list(my_collection.aggregate(pipeline_))
-            from bson import json_util
             print(json.dumps(documents, indent=4, default=json_util.default))
 
         except PyMongoError as ex:
@@ -249,7 +247,6 @@ class MongoDbOperation:
 
             collection = db.get_collection(collection_name)
             documents = list(collection.find())
-            from bson import json_util
             print(json.dumps(documents, indent=4, default=json_util.default))
 
             if not documents:
@@ -657,13 +654,4 @@ class MongoDbOperation:
         finally:
             client.close()
             logging.info('MongoDB connection closed.')
-
-if __name__ == "__main__":
-    try:
-        pipeline = Pipelines.pipeline_1()
-        MongoDbOperation.execute_aggregate_pipeline(pipeline_=pipeline)
-    except ConfigurationError:
-        logging.error("Could not configure MongoDB client. Check your internet connection.")
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
 
