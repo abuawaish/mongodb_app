@@ -9,6 +9,7 @@ from typing import Any, MutableMapping, Optional
 import os
 import streamlit as st
 from bson import json_util
+from datetime import datetime, timezone
 
 logging.basicConfig(
     level=logging.INFO,
@@ -272,9 +273,10 @@ class MongoDbOperation:
                 return
 
             db = client[database_name]
-            # Trigger actual creation by inserting a dummy doc
-            db['__temp_collection__'].insert_one({'created': True})
-            db.drop_collection('__temp_collection__')  # Clean it up
+            db['_db_metadata'].insert_one({
+                'initialized': True,
+                'created_at': datetime.now(timezone.utc)
+            })
 
             if database_name in client.list_database_names():
                 print(f"The database '{database_name}' was created successfully.")
