@@ -267,23 +267,31 @@ class MongoDbOperation:
         client: Optional[MongoClient] = MongoDbOperation.__connect()
         if client is None:
             raise ConnectionError("MongoDB client is None. Could not establish connection.")
+
         try:
-            if database_name in client.list_database_names():
-                print(f"The database '{database_name}' already exists.")
-                return
+            existing_dbs = client.list_database_names()
 
             db = client[database_name]
-            db['_db_metadata'].insert_one({
-                'initialized': True,
-                'created_at': datetime.now(timezone.utc)
-            })
 
-            if database_name in client.list_database_names():
-                print(f"The database '{database_name}' was created successfully.")
+            if database_name not in existing_dbs:
+                db['_db_metadata'].insert_one({
+                    'initialized': True,
+                    'created_at': datetime.now(timezone.utc)
+                })
+                logging.info(f"Database '{database_name}' created successfully.")
             else:
-                print(f"Failed to verify creation of the database '{database_name}'.")
+                if '_db_metadata' not in db.list_collection_names():
+                    db['_db_metadata'].insert_one({
+                        'initialized': True,
+                        'created_at': datetime.now(timezone.utc)
+                    })
+                    logging.info(f"Metadata initialized for existing database '{database_name}'.")
+                else:
+                    logging.info(f"Database '{database_name}' already exists.")
+
         except PyMongoError as ex:
             logging.exception(f"An error occurred while creating the database: {ex}")
+
         finally:
             client.close()
             logging.info("MongoDB connection closed.")
