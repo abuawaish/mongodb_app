@@ -278,16 +278,16 @@ class MongoDbOperation:
                     'initialized': True,
                     'created_at': datetime.now(timezone.utc)
                 })
-                logging.info(f"Database '{database_name}' created successfully.")
+                print(f"Database '{database_name}' created successfully.")
             else:
                 if '_db_metadata' not in db.list_collection_names():
                     db['_db_metadata'].insert_one({
                         'initialized': True,
                         'created_at': datetime.now(timezone.utc)
                     })
-                    logging.info(f"Metadata initialized for existing database '{database_name}'.")
+                    print(f"Metadata initialized for existing database '{database_name}'.")
                 else:
-                    logging.info(f"Database '{database_name}' already exists.")
+                    print(f"Database '{database_name}' already exists.")
 
         except PyMongoError as ex:
             logging.exception(f"An error occurred while creating the database: {ex}")
