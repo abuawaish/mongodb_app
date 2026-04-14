@@ -346,7 +346,7 @@ class MongoDbOperation:
             if isinstance(document, dict):
                 result_1: InsertOneResult = collection.insert_one(document)
                 print(f"✅ Document inserted with _id: {result_1.inserted_id}")
-            if isinstance(document, list):
+            elif isinstance(document, list):
                 result_2: InsertManyResult = collection.insert_many(document)
                 for inserted_id in result_2.inserted_ids:
                     print(f"✅ Document inserted with _id: {inserted_id}")
