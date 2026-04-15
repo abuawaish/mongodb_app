@@ -399,7 +399,7 @@ class Pipelines:
                     "_id": 0,
                     "car_name": {
                         "$toUpper": {
-                            "$concat": ["maker", " ", "model"]
+                            "$concat": ["$maker", " ", "$model"]
                         }
                     }
                 }
