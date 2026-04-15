@@ -76,6 +76,7 @@ class MongoDbOperation:
             print(json.dumps(documents, indent=4, default=json_util.default))
 
         except PyMongoError as ex:
+            print(f"Aggregation failed: {ex}")
             logging.exception(f"Aggregation failed: {ex}")
 
         finally:
@@ -102,6 +103,7 @@ class MongoDbOperation:
             print(json.dumps(documents, indent=4, default=json_util.default))
 
         except PyMongoError as ex:
+            print(f"Aggregation failed:\n {ex}")
             logging.exception(f"Aggregation failed: {ex}")
 
         finally:
@@ -125,6 +127,7 @@ class MongoDbOperation:
                     print(f" - {db}")
 
         except PyMongoError as ex:
+            print(f"An error occurred while fetching database names:\n {ex}")
             logging.exception(f"An error occurred while fetching database names: {ex}")
         finally:
             client.close()
@@ -155,6 +158,7 @@ class MongoDbOperation:
                     print(f" - {name}")
 
         except PyMongoError as ex:
+            print(f"An error occurred while listing collections in '{database_name}':\n {ex}")
             logging.exception(f"An error occurred while listing collections in '{database_name}': {ex}")
         finally:
             client.close()
@@ -186,8 +190,10 @@ class MongoDbOperation:
             print(f"The collection '{collection_name}' was created successfully.")
 
         except CollectionInvalid:
+            print(f"The collection '{collection_name}' already exists")
             logging.warning(f"The collection '{collection_name}' already exists")
         except PyMongoError as ex:
+            print(f"An error occurred while creating the collection '{collection_name}':\n {ex}")
             logging.exception(f"An error occurred while creating the collection '{collection_name}': {ex}")
         finally:
             client.close()
@@ -219,6 +225,7 @@ class MongoDbOperation:
             print(f"The collection '{collection_name}' was dropped successfully.")
 
         except PyMongoError as ex:
+            print(f"An error occurred while dropping the collection '{collection_name}':\n {ex}")
             logging.exception(f"An error occurred while dropping the collection '{collection_name}': {ex}")
         finally:
             client.close()
@@ -254,6 +261,7 @@ class MongoDbOperation:
                 print(f"No documents found in collection '{collection_name}'.")
 
         except PyMongoError as ex:
+            print(f"An error occurred while fetching documents from '{collection_name}':\n {ex}")
             logging.exception(f"An error occurred while fetching documents from '{collection_name}': {ex}")
         finally:
             client.close()
@@ -290,6 +298,7 @@ class MongoDbOperation:
                     print(f"Database '{database_name}' already exists.")
 
         except PyMongoError as ex:
+            print(f"An error occurred while creating the database:\n {ex}")
             logging.exception(f"An error occurred while creating the database: {ex}")
 
         finally:
@@ -307,13 +316,14 @@ class MongoDbOperation:
 
         try:
             if database_name not in client.list_database_names():
-                logging.info(f"The database '{database_name}' does not exist.")
+                print(f"The database '{database_name}' does not exist.")
                 return
 
             logging.info(f"Trying to drop the database: {database_name}")
             client.drop_database(database_name)
             print(f"The database '{database_name}' was dropped successfully.")
         except PyMongoError as ex:
+            print(f"An error occurred while dropping the database '{database_name}':\n {ex}")
             logging.exception(f"An error occurred while dropping the database '{database_name}': {ex}")
         finally:
             client.close()
@@ -370,8 +380,8 @@ class MongoDbOperation:
             MongoDbOperation.__handle_write_error_details(we)
 
         except PyMongoError as ex:
+            print(f"❌ Failed to insert document(s):\n {ex}")
             logging.exception(f"General PyMongo error: {ex}")
-            print(f"❌ Failed to insert document(s): {ex}")
 
         finally:
             client.close()
@@ -446,6 +456,7 @@ class MongoDbOperation:
                 print(f"Acknowledged {result_2.acknowledged}, Matched {result_2.matched_count}, Modified {result_2.modified_count} (multiple documents).")
 
         except PyMongoError as ex:
+            print(f"An error occurred while updating documents in collection '{collection_name}':\n {ex}")
             logging.exception(f"An error occurred while updating documents in collection '{collection_name}': {ex}")
         finally:
             client.close()
@@ -487,6 +498,7 @@ class MongoDbOperation:
                 print(f"Acknowledged {result_2.acknowledged}, Deleted {result_2.deleted_count} documents.")
 
         except PyMongoError as ex:
+            print(f"An error occurred during deletion from '{collection_name}':\n {ex}")
             logging.exception(f"An error occurred during deletion from '{collection_name}': {ex}")
         finally:
             client.close()
@@ -525,6 +537,7 @@ class MongoDbOperation:
             print(f"Schema modified successfully for collection '{collection_name}'.")
 
         except PyMongoError as ex:
+            print(f"An error occurred during schema modification in collection '{collection_name}':\n {ex}")
             logging.exception(f"An error occurred during schema modification in collection '{collection_name}': {ex}")
         finally:
             client.close()
@@ -559,6 +572,7 @@ class MongoDbOperation:
             print(f"The index '{index_result}' was created successfully in collection '{collection_name}'.")
 
         except OperationFailure as ex:
+            print(f"Index creation failed for collection '{collection_name}' with index '{index_name}':\n {ex}")
             logging.exception(f"Index creation failed for collection '{collection_name}' with index '{index_name}': {ex}")
         finally:
             client.close()
@@ -597,6 +611,7 @@ class MongoDbOperation:
                     print(f"  {key}: {value}")
 
         except OperationFailure as of:
+            print(f"Failed to retrieve the indexes from the collection `{collection_name}`:\n {of}")
             logging.exception(f"Failed to retrieve the indexes from the collection `{collection_name}`: {of}")
 
         finally:
@@ -638,6 +653,7 @@ class MongoDbOperation:
             print(f"The index '{index_name}' was dropped successfully from collection '{collection_name}'.")
 
         except OperationFailure as ex:
+            print(f"Failed to delete index '{index_name}' from the collection '{collection_name}':\n {ex}")
             logging.exception(f"Failed to delete index '{index_name}' from the collection '{collection_name}': {ex}")
 
         finally:
@@ -659,7 +675,8 @@ class MongoDbOperation:
             json_schema = validator.get("$jsonSchema", {})
             print(f"Validation rules for collection '{my_collection.name}':")
             print(json.dumps(json_schema, indent=4))
-        except PyMongoError:
+        except PyMongoError as pe:
+            print(f'An error occurred while fetching collection information:\n {pe}')
             logging.exception('An error occurred while fetching collection information')
         finally:
             client.close()
@@ -689,8 +706,8 @@ class MongoDbOperation:
             if not documents:
                 print("Pipeline returned no documents.")
         except PyMongoError as ex:
+            print(f"Custom pipeline failed:\n {ex}")
             logging.exception(f"Custom pipeline failed: {ex}")
-            print(f"Error: {ex}")
         finally:
             client.close()
             logging.info("MongoDB connection closed.")
