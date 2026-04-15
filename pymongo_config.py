@@ -531,8 +531,8 @@ class MongoDbOperation:
             db.command({
                 "collMod": collection_name,
                 "validator": validator,
-                "validationLevel": "moderate",   # Can also be "strict"
-                "validationAction": "warn"       # Or "error"
+                "validationLevel": "strict",   # Can also be "moderate"
+                "validationAction": "error"       # Or "warn"
             })
             print(f"Schema modified successfully for collection '{collection_name}'.")
 
