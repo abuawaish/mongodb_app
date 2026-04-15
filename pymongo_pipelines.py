@@ -404,9 +404,6 @@ class Pipelines:
                     }
                 }
             },
-            {
-                "$out": "hyundai_cars"
-            }
         ]
         return pipeline
 
