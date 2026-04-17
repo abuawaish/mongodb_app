@@ -178,6 +178,14 @@ elif menu == "CRUD Ops":
     db_name = st.text_input("Database name", key="crud_db")
     coll_name = st.text_input("Collection name", key="crud_coll")
 
+    # Fetch
+    if st.button("Fetch all documents"):
+        if db_name and coll_name:
+            output = capture_output(MongoDbOperation.fetch_document, db_name, coll_name)
+            display_output(output, f"Documents from {coll_name}")
+        else:
+            st.warning("Database and collection names required.")
+
     # Insert
     with st.expander("Insert document(s)"):
         doc_json = st.text_area(
@@ -193,14 +201,6 @@ elif menu == "CRUD Ops":
                     display_output(output, "Insert result")
             else:
                 st.warning("All fields required.")
-
-    # Fetch
-    if st.button("Fetch all documents"):
-        if db_name and coll_name:
-            output = capture_output(MongoDbOperation.fetch_document, db_name, coll_name)
-            display_output(output, f"Documents from {coll_name}")
-        else:
-            st.warning("Database and collection names required.")
 
     # Update
     with st.expander("Update documents"):
