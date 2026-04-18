@@ -1,5 +1,9 @@
 # MongoDB CRUD & Aggregation Pipeline Interface
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://abuawaish-app.streamlit.app/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A **Streamlit**‑based graphical interface for MongoDB that supports full **CRUD** operations, database and collection management, index and schema validation, and **12 predefined aggregation pipelines** (including a join pipeline).  
 The backend uses PyMongo and the provided `MongoDbOperation` class; outputs are beautified with the **Rich** library.
 
