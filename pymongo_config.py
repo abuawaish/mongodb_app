@@ -662,16 +662,32 @@ class MongoDbOperation:
 
     @staticmethod
     def get_collection_info(database_name: str, collection_name: str) -> None:
+        if not database_name:
+            raise ValueError("Database name must not be empty.")
+        if not collection_name:
+            raise ValueError("Collection name must not be empty.")
+
         client: Optional[MongoClient] = MongoDbOperation.__connect()
         if client is None:
             raise ConnectionError("MongoDB client is None. Could not establish connection.")
         try:
+            if database_name not in client.list_database_names():
+                print(f"The database '{database_name}' does not exist.")
+                return
+
             db = client[database_name]
+
+            if collection_name not in db.list_collection_names():
+                print(f"The collection '{collection_name}' does not exist in database '{database_name}'.")
+                return
+
             my_collection = db.get_collection(collection_name)
             validator = my_collection.options().get("validator", {})
+
             if not validator:
                 print(f"No validation rules found for collection '{my_collection.name}'.")
                 return
+
             json_schema = validator.get("$jsonSchema", {})
             print(f"Validation rules for collection '{my_collection.name}':")
             print(json.dumps(json_schema, indent=4))
